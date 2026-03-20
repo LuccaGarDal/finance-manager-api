@@ -1,5 +1,6 @@
 package com.lucca.finance_manager_api.mapper;
 
+import com.lucca.finance_manager_api.dto.LoginRequestDTO;
 import com.lucca.finance_manager_api.dto.RegisterRequestDTO;
 import com.lucca.finance_manager_api.entity.User;
 import org.springframework.stereotype.Component;
@@ -17,4 +18,5 @@ public class UserMapper {
 
         return user;
     }
+
 }
