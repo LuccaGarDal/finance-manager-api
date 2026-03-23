@@ -40,6 +40,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private LocalDate dateOfBirth;
 
+    @OneToMany(mappedBy = "user")
+    private List<Account> accounts;
+
     private LocalDateTime createdAt;
 
     @PrePersist

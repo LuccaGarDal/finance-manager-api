@@ -26,4 +26,8 @@ public class Account {
     @Column(nullable = false)
     private BigDecimal balance;
 
+    @ManyToOne
+    @JoinColumn(name = "userId")
+    private User user;
+
 }
