@@ -15,7 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AccountService {
@@ -69,5 +68,19 @@ public class AccountService {
                         "Account not found"
                 ));
         accountRepository.delete(account);
+    }
+
+    public AccountResponseDTO updateAccount (Long id, AccountRequestDTO dto) {
+        User user = userLoggedProvider.getUser();
+        Account account = accountRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Account not found"
+                ));
+        if (dto.name() != null) { account.setName(dto.name());}
+        if (dto.balance() != null) { account.setBalance(dto.balance());}
+
+        Account save = accountRepository.save(account);
+        return accountMapper.toResponse(save);
     }
 }
