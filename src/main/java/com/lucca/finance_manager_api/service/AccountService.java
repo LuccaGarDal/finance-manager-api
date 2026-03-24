@@ -52,11 +52,22 @@ public class AccountService {
     }
 
     public AccountResponseDTO getAccount (Long id) {
-        Account account = accountRepository.findById(id)
+        User user = userLoggedProvider.getUser();
+        Account account = accountRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Account not found"
                 ));
         return accountMapper.toResponse(account);
+    }
+
+    public void deleteAccount (Long id) {
+        User user = userLoggedProvider.getUser();
+        Account account = accountRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Account not found"
+                ));
+        accountRepository.delete(account);
     }
 }

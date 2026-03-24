@@ -31,11 +31,16 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok(allAccounts));
     }
 
-    @GetMapping
-    @RequestMapping("/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ApiResponseDTO> getAccount (@PathVariable Long id) {
         AccountResponseDTO account = accountService.getAccount(id);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok(account));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponseDTO> deleteAccount (@PathVariable Long id) {
+        accountService.deleteAccount(id);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok("Account deleted successfully"));
     }
 
 }
