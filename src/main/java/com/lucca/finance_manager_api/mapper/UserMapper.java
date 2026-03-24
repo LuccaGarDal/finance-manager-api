@@ -1,7 +1,8 @@
 package com.lucca.finance_manager_api.mapper;
 
-import com.lucca.finance_manager_api.dto.LoginRequestDTO;
-import com.lucca.finance_manager_api.dto.RegisterRequestDTO;
+import com.lucca.finance_manager_api.dto.auth.LoginResponseDTO;
+import com.lucca.finance_manager_api.dto.auth.RegisterRequestDTO;
+import com.lucca.finance_manager_api.dto.auth.RegisterResponseDTO;
 import com.lucca.finance_manager_api.entity.User;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,13 @@ public class UserMapper {
         user.setDateOfBirth(dto.dateOfBirth());
 
         return user;
+    }
+
+    public RegisterResponseDTO toRegisterResponse (User user) {
+        return new RegisterResponseDTO(
+                user.getName(),
+                user.getEmail()
+        );
     }
 
 }

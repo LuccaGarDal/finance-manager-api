@@ -1,7 +1,6 @@
-package com.lucca.finance_manager_api.dto;
+package com.lucca.finance_manager_api.dto.auth;
 
 import jakarta.validation.constraints.NotEmpty;
-import lombok.NonNull;
 
 import java.time.LocalDate;
 

@@ -1,8 +1,9 @@
 package com.lucca.finance_manager_api.service;
 
 import com.lucca.finance_manager_api.config.TokenConfig;
-import com.lucca.finance_manager_api.dto.LoginRequestDTO;
-import com.lucca.finance_manager_api.dto.RegisterRequestDTO;
+import com.lucca.finance_manager_api.dto.auth.LoginRequestDTO;
+import com.lucca.finance_manager_api.dto.auth.RegisterRequestDTO;
+import com.lucca.finance_manager_api.dto.auth.RegisterResponseDTO;
 import com.lucca.finance_manager_api.entity.User;
 import com.lucca.finance_manager_api.mapper.UserMapper;
 import com.lucca.finance_manager_api.repository.UserRepository;
@@ -30,10 +31,11 @@ public class AuthService {
     @Autowired
     TokenConfig tokenConfig;
 
-    public User register (RegisterRequestDTO dto) {
+    public RegisterResponseDTO register (RegisterRequestDTO dto) {
         User user = userMapper.toEntity(dto);
         user.setPassword(passwordEncoder.encode(dto.password()));
-        return userRepository.save(user);
+        User save = userRepository.save(user);
+        return userMapper.toRegisterResponse(save);
     }
 
     public String login (LoginRequestDTO dto) {

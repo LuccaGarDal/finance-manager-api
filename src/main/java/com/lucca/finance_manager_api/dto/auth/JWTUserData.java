@@ -1,4 +1,4 @@
-package com.lucca.finance_manager_api.dto;
+package com.lucca.finance_manager_api.dto.auth;
 
 import lombok.Builder;
 

@@ -1,6 +1,5 @@
 package com.lucca.finance_manager_api.security;
 
-import com.lucca.finance_manager_api.dto.JWTUserData;
 import com.lucca.finance_manager_api.entity.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;

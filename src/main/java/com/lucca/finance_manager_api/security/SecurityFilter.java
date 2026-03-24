@@ -1,7 +1,7 @@
 package com.lucca.finance_manager_api.security;
 
 import com.lucca.finance_manager_api.config.TokenConfig;
-import com.lucca.finance_manager_api.dto.JWTUserData;
+import com.lucca.finance_manager_api.dto.auth.JWTUserData;
 import com.lucca.finance_manager_api.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,7 +11,6 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 

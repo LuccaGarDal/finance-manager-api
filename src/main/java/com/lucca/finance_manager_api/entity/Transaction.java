@@ -7,32 +7,26 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
 @Getter
-@Table (name = "accounts")
+@Setter
 @Entity
-public class Account {
+@Table(name = "transactions")
+@NoArgsConstructor
+@AllArgsConstructor
+public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String name;
+    private String type;
 
     @Column(nullable = false)
-    private BigDecimal balance;
+    private BigDecimal amount;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @OneToMany (mappedBy = "account")
-    private List<Transaction> transactions;
-
-
+    @JoinColumn(name = "account_id")
+    private Account account;
 }

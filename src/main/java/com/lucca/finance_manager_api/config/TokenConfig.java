@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.lucca.finance_manager_api.dto.JWTUserData;
+import com.lucca.finance_manager_api.dto.auth.JWTUserData;
 import com.lucca.finance_manager_api.entity.User;
 import org.springframework.stereotype.Component;
 import java.time.Instant;

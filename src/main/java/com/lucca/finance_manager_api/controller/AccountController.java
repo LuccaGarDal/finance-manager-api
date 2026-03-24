@@ -1,15 +1,16 @@
 package com.lucca.finance_manager_api.controller;
 
-import com.lucca.finance_manager_api.dto.AccountRequestDTO;
+import com.lucca.finance_manager_api.dto.ApiResponseDTO;
+import com.lucca.finance_manager_api.dto.account.AccountRequestDTO;
+import com.lucca.finance_manager_api.dto.account.AccountResponseDTO;
 import com.lucca.finance_manager_api.entity.Account;
-import com.lucca.finance_manager_api.repository.AccountRepository;
 import com.lucca.finance_manager_api.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/account")
@@ -20,9 +21,16 @@ public class AccountController {
 
     @PostMapping
     @RequestMapping("/create")
-    public ResponseEntity<Long> createAccount (@RequestBody AccountRequestDTO dto) {
-        Account account = accountService.createAccount(dto);
-        return ResponseEntity.ok().body(account.getUser().getId());
+    public ResponseEntity<ApiResponseDTO> createAccount (@RequestBody AccountRequestDTO dto) {
+        AccountResponseDTO data = accountService.createAccount(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDTO.ok(data));
+    }
+
+    @GetMapping
+    @RequestMapping("/myAccounts")
+    public ResponseEntity<ApiResponseDTO> getAllAccounts () {
+        List<AccountResponseDTO> allAccounts = accountService.getAllAccounts();
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok(allAccounts));
     }
 
 }
