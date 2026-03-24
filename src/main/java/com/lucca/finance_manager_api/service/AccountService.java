@@ -9,10 +9,13 @@ import com.lucca.finance_manager_api.repository.AccountRepository;
 import com.lucca.finance_manager_api.repository.UserRepository;
 import com.lucca.finance_manager_api.security.UserLoggedProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AccountService {
@@ -46,5 +49,14 @@ public class AccountService {
         }
 
         return listDto;
+    }
+
+    public AccountResponseDTO getAccount (Long id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Account not found"
+                ));
+        return accountMapper.toResponse(account);
     }
 }
