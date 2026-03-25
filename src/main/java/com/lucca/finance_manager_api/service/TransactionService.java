@@ -4,6 +4,7 @@ import com.lucca.finance_manager_api.dto.transaction.TransactionRequestDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionResponseDTO;
 import com.lucca.finance_manager_api.entity.Account;
 import com.lucca.finance_manager_api.entity.Transaction;
+import com.lucca.finance_manager_api.entity.Type;
 import com.lucca.finance_manager_api.entity.User;
 import com.lucca.finance_manager_api.mapper.TransactionMapper;
 import com.lucca.finance_manager_api.repository.AccountRepository;
@@ -37,6 +38,13 @@ public class TransactionService {
             throw new RuntimeException("You don't have permission to create");
         }
         entity.setAccount(account);
+        if (entity.getType().equals(Type.EXPENSE)) {
+            account.setBalance(account.getBalance().subtract(entity.getAmount()));
+        }
+        if (entity.getType().equals(Type.INCOME)) {
+            account.setBalance(account.getBalance().add(entity.getAmount()));
+        }
+        accountRepository.save(account);
         Transaction save = transactionRepository.save(entity);
         return transactionMapper.toResponse(save);
     }
