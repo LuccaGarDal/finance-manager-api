@@ -21,7 +21,8 @@ public class Transaction {
     private Long id;
 
     @Column(nullable = false)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private Type type;
 
     @Column(nullable = false)
     private BigDecimal amount;
