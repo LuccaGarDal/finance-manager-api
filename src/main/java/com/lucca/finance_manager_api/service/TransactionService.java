@@ -13,6 +13,9 @@ import com.lucca.finance_manager_api.security.UserLoggedProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class TransactionService {
 
@@ -47,5 +50,22 @@ public class TransactionService {
         accountRepository.save(account);
         Transaction save = transactionRepository.save(entity);
         return transactionMapper.toResponse(save);
+    }
+
+    public List<TransactionResponseDTO> listTransactions (Long id) {
+        User user = provider.getUser();
+        Account account = accountRepository.findById(id).orElseThrow(
+                () -> new RuntimeException("Account not found")
+        );
+        if  (!(account.getUser().getId().equals(user.getId()))) {
+            throw new RuntimeException("You don't have permission to create");
+        }
+        List<TransactionResponseDTO> list = new ArrayList<>();
+        List<Transaction> all = transactionRepository.findByAccountId(id);
+        for (Transaction transaction : all) {
+            list.add(transactionMapper.toResponse(transaction));
+        }
+        return list;
+
     }
 }
