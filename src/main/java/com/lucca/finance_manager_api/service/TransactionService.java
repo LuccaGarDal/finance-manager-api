@@ -66,6 +66,20 @@ public class TransactionService {
             list.add(transactionMapper.toResponse(transaction));
         }
         return list;
+    }
 
+    public TransactionResponseDTO getTransaction (Long accountId, Long id) {
+        User user = provider.getUser();
+        Account account = accountRepository.findById(accountId).orElseThrow(
+                () -> new RuntimeException("Account not found")
+        );
+        if  (!(account.getUser().getId().equals(user.getId()))) {
+            throw new RuntimeException("You don't have permission to access this transaction");
+        }
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new RuntimeException("Transaction not found"));
+        if(!(transaction.getAccount().getId().equals(account.getId()))) {
+            throw new RuntimeException("You don't have permission to access this transaction");
+        }
+        return transactionMapper.toResponse(transaction);
     }
 }
