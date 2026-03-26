@@ -6,6 +6,7 @@ import com.lucca.finance_manager_api.dto.auth.LoginResponseDTO;
 import com.lucca.finance_manager_api.dto.auth.RegisterRequestDTO;
 import com.lucca.finance_manager_api.entity.User;
 import com.lucca.finance_manager_api.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +23,12 @@ public class AuthController {
     AuthService authService;
 
     @PostMapping("/register")
-    private ResponseEntity<ApiResponseDTO> register (@RequestBody RegisterRequestDTO dto) {
+    private ResponseEntity<ApiResponseDTO> register (@RequestBody @Valid RegisterRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDTO.ok(authService.register(dto)));
     }
 
     @PostMapping("/login")
-    private ResponseEntity<ApiResponseDTO> login (@RequestBody LoginRequestDTO dto) {
+    private ResponseEntity<ApiResponseDTO> login (@RequestBody @Valid LoginRequestDTO dto) {
         String token = authService.login(dto);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok(new LoginResponseDTO(token)));
     }
