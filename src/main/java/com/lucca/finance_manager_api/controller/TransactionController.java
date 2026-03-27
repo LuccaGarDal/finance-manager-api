@@ -41,4 +41,10 @@ public class TransactionController {
 
     }
 
+    @DeleteMapping("/accounts/{accountId}/transactions/{id}")
+    public ResponseEntity<ApiResponseDTO> deleteTransaction (@PathVariable Long accountId, @PathVariable Long id) {
+        transactionService.deleteTransaction(accountId, id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDTO.ok("Transaction deleted successfully"));
+    }
+
 }
