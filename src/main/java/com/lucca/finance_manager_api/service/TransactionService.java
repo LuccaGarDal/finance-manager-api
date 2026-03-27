@@ -1,5 +1,6 @@
 package com.lucca.finance_manager_api.service;
 
+import com.lucca.finance_manager_api.dto.transaction.PaginatedTransactionResponseDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionRequestDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionResponseDTO;
 import com.lucca.finance_manager_api.entity.Account;
@@ -11,6 +12,9 @@ import com.lucca.finance_manager_api.repository.AccountRepository;
 import com.lucca.finance_manager_api.repository.TransactionRepository;
 import com.lucca.finance_manager_api.security.UserLoggedProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -52,7 +56,7 @@ public class TransactionService {
         return transactionMapper.toResponse(save);
     }
 
-    public List<TransactionResponseDTO> listTransactions (Long id) {
+    public PaginatedTransactionResponseDTO<TransactionResponseDTO> listTransactions (Long id, int page, int limit) {
         User user = provider.getUser();
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("Account not found")
@@ -60,12 +64,13 @@ public class TransactionService {
         if  (!(account.getUser().getId().equals(user.getId()))) {
             throw new RuntimeException("You don't have permission to create");
         }
-        List<TransactionResponseDTO> list = new ArrayList<>();
-        List<Transaction> all = transactionRepository.findByAccountId(id);
-        for (Transaction transaction : all) {
-            list.add(transactionMapper.toResponse(transaction));
-        }
-        return list;
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<Transaction> page1 = transactionRepository.findByAccountId(account.getId(), pageable);
+        List<TransactionResponseDTO> data = page1.map(t -> new TransactionResponseDTO(
+                t.getType(),
+                t.getAmount()
+        )).getContent();
+        return new PaginatedTransactionResponseDTO<>(data, page, limit, page1.getTotalElements());
     }
 
     public TransactionResponseDTO getTransaction (Long accountId, Long id) {

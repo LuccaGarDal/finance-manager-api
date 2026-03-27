@@ -1,6 +1,7 @@
 package com.lucca.finance_manager_api.controller;
 
 import com.lucca.finance_manager_api.dto.ApiResponseDTO;
+import com.lucca.finance_manager_api.dto.transaction.PaginatedTransactionResponseDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionRequestDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionResponseDTO;
 import com.lucca.finance_manager_api.service.TransactionService;
@@ -25,9 +26,11 @@ public class TransactionController {
     }
 
     @GetMapping("/accounts/{accountId}/transactions")
-    public ResponseEntity<ApiResponseDTO> listTransactions (@PathVariable Long accountId) {
-        List<TransactionResponseDTO> transactionResponseDTOS = transactionService.listTransactions(accountId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDTO.ok(transactionResponseDTOS));
+    public ResponseEntity<ApiResponseDTO> listTransactions (@PathVariable Long accountId,
+                                                            @RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "20") int limit) {
+        PaginatedTransactionResponseDTO<TransactionResponseDTO> pages = transactionService.listTransactions(accountId, page, limit);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDTO.ok(pages));
 
     }
 
