@@ -15,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +41,10 @@ public class TransactionService {
         User user = provider.getUser();
         Transaction entity = transactionMapper.toEntity(dto);
         Account account = accountRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Account not found")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
         );
         if  (!(account.getUser().getId().equals(user.getId()))) {
-            throw new RuntimeException("You don't have permission to create");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to create");
         }
         entity.setAccount(account);
         if (entity.getType().equals(Type.EXPENSE)) {
@@ -59,10 +61,10 @@ public class TransactionService {
     public PaginatedTransactionResponseDTO<TransactionResponseDTO> listTransactions (Long id, int page, int limit) {
         User user = provider.getUser();
         Account account = accountRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Account not found")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
         );
         if  (!(account.getUser().getId().equals(user.getId()))) {
-            throw new RuntimeException("You don't have permission to create");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to list");
         }
         Pageable pageable = PageRequest.of(page, limit);
         Page<Transaction> page1 = transactionRepository.findByAccountId(account.getId(), pageable);
@@ -75,15 +77,20 @@ public class TransactionService {
 
     public TransactionResponseDTO getTransaction (Long accountId, Long id) {
         User user = provider.getUser();
+
         Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> new RuntimeException("Account not found")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
         );
+
         if  (!(account.getUser().getId().equals(user.getId()))) {
-            throw new RuntimeException("You don't have permission to access this transaction");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to access this account");
         }
-        Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
+
         if(!(transaction.getAccount().getId().equals(account.getId()))) {
-            throw new RuntimeException("You don't have permission to access this transaction");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This transaction does not belong to this account");
         }
         return transactionMapper.toResponse(transaction);
     }
@@ -91,14 +98,15 @@ public class TransactionService {
     public void deleteTransaction (Long accountId, Long id) {
         User user = provider.getUser();
         Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> new RuntimeException("Account not found")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
         );
         if  (!(account.getUser().getId().equals(user.getId()))) {
-            throw new RuntimeException("You don't have permission to access this transaction");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to access this account");
         }
-        Transaction transaction = transactionRepository.findById(id).orElseThrow(() -> new RuntimeException("Transaction not found"));
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
         if (!transaction.getAccount().getId().equals(accountId)) {
-            throw new RuntimeException("This transaction does not belong to this account");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This transaction does not belong to this account");
         }
         transactionRepository.delete(transaction);
     }
