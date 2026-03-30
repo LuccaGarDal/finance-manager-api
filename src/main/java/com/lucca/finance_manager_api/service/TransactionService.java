@@ -111,6 +111,12 @@ public class TransactionService {
         if (!transaction.getAccount().getId().equals(accountId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This transaction does not belong to this account");
         }
+        if (transaction.getType() == Type.EXPENSE) {
+            account.setBalance(account.getBalance().add(transaction.getAmount()));
+        }
+        if (transaction.getType() == Type.INCOME) {
+            account.setBalance(account.getBalance().subtract(transaction.getAmount()));
+        }
         transactionRepository.delete(transaction);
     }
 }
