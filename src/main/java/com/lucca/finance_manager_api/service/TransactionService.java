@@ -48,6 +48,9 @@ public class TransactionService {
         }
         entity.setAccount(account);
         if (entity.getType().equals(Type.EXPENSE)) {
+            if (account.getBalance().compareTo(entity.getAmount()) < 0) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "You don't have enough money to this transaction");
+            }
             account.setBalance(account.getBalance().subtract(entity.getAmount()));
         }
         if (entity.getType().equals(Type.INCOME)) {
