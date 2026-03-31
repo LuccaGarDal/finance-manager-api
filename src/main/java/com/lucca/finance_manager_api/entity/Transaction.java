@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -27,7 +29,30 @@ public class Transaction {
     @Column(nullable = false)
     private BigDecimal amount;
 
+    @Column
+    private LocalDate transactionDate;
+
+    @Column
+    private LocalDateTime createdAt;
+
+    @Column
+    private LocalDate updatedAt;
+
+    @Column
+    private Boolean applied;
+
     @ManyToOne
     @JoinColumn(name = "account_id")
     private Account account;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDate.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDate.now();
+    }
 }

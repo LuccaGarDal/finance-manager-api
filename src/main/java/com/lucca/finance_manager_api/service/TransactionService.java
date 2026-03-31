@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,19 +44,26 @@ public class TransactionService {
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
         );
-        if  (!(account.getUser().getId().equals(user.getId()))) {
+        if  (!account.getUser().getId().equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to create");
         }
         entity.setAccount(account);
-        if (entity.getType().equals(Type.EXPENSE)) {
-            if (account.getBalance().compareTo(entity.getAmount()) < 0) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "You don't have enough money to this transaction");
+
+        if(!entity.getTransactionDate().isAfter(LocalDate.now())) {
+            entity.setApplied(true);
+            if (entity.getType() == Type.EXPENSE) {
+                if (account.getBalance().compareTo(entity.getAmount()) < 0) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "You don't have enough money to this transaction");
+                }
+                account.setBalance(account.getBalance().subtract(entity.getAmount()));
             }
-            account.setBalance(account.getBalance().subtract(entity.getAmount()));
+            if (entity.getType() == Type.INCOME) {
+                account.setBalance(account.getBalance().add(entity.getAmount()));
+            }
+        } else {
+            entity.setApplied(false);
         }
-        if (entity.getType().equals(Type.INCOME)) {
-            account.setBalance(account.getBalance().add(entity.getAmount()));
-        }
+
         accountRepository.save(account);
         Transaction save = transactionRepository.save(entity);
         return transactionMapper.toResponse(save);
@@ -73,7 +81,8 @@ public class TransactionService {
         Page<Transaction> page1 = transactionRepository.findByAccountId(account.getId(), pageable);
         List<TransactionResponseDTO> data = page1.map(t -> new TransactionResponseDTO(
                 t.getType(),
-                t.getAmount()
+                t.getAmount(),
+                t.getTransactionDate()
         )).getContent();
         return new PaginatedTransactionResponseDTO<>(data, page, limit, page1.getTotalElements());
     }
