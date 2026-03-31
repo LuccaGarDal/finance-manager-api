@@ -12,4 +12,5 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Page<Transaction> findByAccountId(Long accountId, Pageable pageable);
     List<Transaction> findByAccountAndTransactionDateLessThanEqualAndAppliedFalse(Account account, LocalDate date);
+    Page<Transaction> findByAccountAndTransactionDateBetween(Account account, LocalDate start, LocalDate end, Pageable pageable);
 }

@@ -69,7 +69,11 @@ public class TransactionService {
         return transactionMapper.toResponse(save);
     }
 
-    public PaginatedTransactionResponseDTO<TransactionResponseDTO> listTransactions (Long id, int page, int limit) {
+    public PaginatedTransactionResponseDTO<TransactionResponseDTO> listTransactions (Long id,
+                                                                                     int page,
+                                                                                     int limit,
+                                                                                     LocalDate start,
+                                                                                     LocalDate end) {
         User user = provider.getUser();
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
@@ -77,15 +81,38 @@ public class TransactionService {
         if  (!(account.getUser().getId().equals(user.getId()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to list");
         }
+
         Pageable pageable = PageRequest.of(page, limit);
-        Page<Transaction> page1 = transactionRepository.findByAccountId(account.getId(), pageable);
-        List<TransactionResponseDTO> data = page1.map(t -> new TransactionResponseDTO(
-                t.getType(),
-                t.getAmount(),
-                t.getTransactionDate()
-        )).getContent();
-        return new PaginatedTransactionResponseDTO<>(data, page, limit, page1.getTotalElements());
+
+        Page<Transaction> pageResult;
+
+        if (start != null && end != null) {
+            pageResult = transactionRepository
+                    .findByAccountAndTransactionDateBetween(
+                            account,
+                            start,
+                            end,
+                            pageable
+                    );
+        } else {
+            pageResult = transactionRepository.findByAccountId(account.getId(), pageable);
+        }
+        List<TransactionResponseDTO> data = pageResult.map(t ->
+                new TransactionResponseDTO(
+                        t.getType(),
+                        t.getAmount(),
+                        t.getTransactionDate()
+                )
+        ).getContent();
+
+        return new PaginatedTransactionResponseDTO<>(
+                data,
+                page,
+                limit,
+                pageResult.getTotalElements()
+        );
     }
+
 
     public TransactionResponseDTO getTransaction (Long accountId, Long id) {
         User user = provider.getUser();
