@@ -2,6 +2,7 @@ package com.lucca.finance_manager_api.repository;
 
 import com.lucca.finance_manager_api.entity.Account;
 import com.lucca.finance_manager_api.entity.Transaction;
+import com.lucca.finance_manager_api.entity.Type;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Page<Transaction> findByAccountId(Long accountId, Pageable pageable);
     List<Transaction> findByAccountAndTransactionDateLessThanEqualAndAppliedFalse(Account account, LocalDate date);
     Page<Transaction> findByAccountAndTransactionDateBetween(Account account, LocalDate start, LocalDate end, Pageable pageable);
+    Page<Transaction> findByAccountIdAndType(
+            Long accountId,
+            Type type,
+            Pageable pageable
+    );
+    Page<Transaction> findByAccountIdAndTransactionDateBetweenAndType(
+            Long accountId,
+            LocalDate start,
+            LocalDate end,
+            Type type,
+            Pageable pageable
+    );
 }

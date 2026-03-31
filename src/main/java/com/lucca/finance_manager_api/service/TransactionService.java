@@ -73,7 +73,8 @@ public class TransactionService {
                                                                                      int page,
                                                                                      int limit,
                                                                                      LocalDate start,
-                                                                                     LocalDate end) {
+                                                                                     LocalDate end,
+                                                                                     Type type) {
         User user = provider.getUser();
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
@@ -86,7 +87,17 @@ public class TransactionService {
 
         Page<Transaction> pageResult;
 
-        if (start != null && end != null) {
+        if (start != null && end != null && type != null) {
+            pageResult = transactionRepository
+                    .findByAccountIdAndTransactionDateBetweenAndType(
+                            account.getId(),
+                            start,
+                            end,
+                            type,
+                            pageable
+                    );
+
+        } else if (start != null && end != null) {
             pageResult = transactionRepository
                     .findByAccountAndTransactionDateBetween(
                             account,
@@ -94,6 +105,15 @@ public class TransactionService {
                             end,
                             pageable
                     );
+
+        } else if (type != null) {
+            pageResult = transactionRepository
+                    .findByAccountIdAndType(
+                            account.getId(),
+                            type,
+                            pageable
+                    );
+
         } else {
             pageResult = transactionRepository.findByAccountId(account.getId(), pageable);
         }
