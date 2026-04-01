@@ -121,7 +121,8 @@ public class TransactionService {
                 new TransactionResponseDTO(
                         t.getType(),
                         t.getAmount(),
-                        t.getTransactionDate()
+                        t.getTransactionDate(),
+                        t.getCategory()
                 )
         ).getContent();
 

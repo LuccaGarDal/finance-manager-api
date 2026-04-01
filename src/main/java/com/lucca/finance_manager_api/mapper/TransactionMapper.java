@@ -12,7 +12,8 @@ public class TransactionMapper {
         return new TransactionResponseDTO(
                 transaction.getType(),
                 transaction.getAmount(),
-                transaction.getTransactionDate()
+                transaction.getTransactionDate(),
+                transaction.getCategory()
         );
     }
 
@@ -21,6 +22,7 @@ public class TransactionMapper {
         transaction.setType(dto.type());
         transaction.setAmount(dto.amount());
         transaction.setTransactionDate(dto.transactionDate());
+        transaction.setCategory(dto.category());
         return transaction;
     }
 }
