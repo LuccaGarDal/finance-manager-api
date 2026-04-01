@@ -3,10 +3,7 @@ package com.lucca.finance_manager_api.service;
 import com.lucca.finance_manager_api.dto.transaction.PaginatedTransactionResponseDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionRequestDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionResponseDTO;
-import com.lucca.finance_manager_api.entity.Account;
-import com.lucca.finance_manager_api.entity.Transaction;
-import com.lucca.finance_manager_api.entity.Type;
-import com.lucca.finance_manager_api.entity.User;
+import com.lucca.finance_manager_api.entity.*;
 import com.lucca.finance_manager_api.mapper.TransactionMapper;
 import com.lucca.finance_manager_api.repository.AccountRepository;
 import com.lucca.finance_manager_api.repository.TransactionRepository;
@@ -74,7 +71,8 @@ public class TransactionService {
                                                                                      int limit,
                                                                                      LocalDate start,
                                                                                      LocalDate end,
-                                                                                     Type type) {
+                                                                                     Type type,
+                                                                                     Category category) {
         User user = provider.getUser();
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
@@ -85,38 +83,11 @@ public class TransactionService {
 
         Pageable pageable = PageRequest.of(page, limit);
 
-        Page<Transaction> pageResult;
+        LocalDate startDate = (start != null) ? start : LocalDate.of(1900, 1, 1);
+        LocalDate endDate = (end != null) ? end : LocalDate.of(3000, 1, 1);
 
-        if (start != null && end != null && type != null) {
-            pageResult = transactionRepository
-                    .findByAccountIdAndTransactionDateBetweenAndType(
-                            account.getId(),
-                            start,
-                            end,
-                            type,
-                            pageable
-                    );
+        Page<Transaction> pageResult = transactionRepository.findFilteredTransactions(account.getId(),type, category, startDate, endDate, pageable);
 
-        } else if (start != null && end != null) {
-            pageResult = transactionRepository
-                    .findByAccountAndTransactionDateBetween(
-                            account,
-                            start,
-                            end,
-                            pageable
-                    );
-
-        } else if (type != null) {
-            pageResult = transactionRepository
-                    .findByAccountIdAndType(
-                            account.getId(),
-                            type,
-                            pageable
-                    );
-
-        } else {
-            pageResult = transactionRepository.findByAccountId(account.getId(), pageable);
-        }
         List<TransactionResponseDTO> data = pageResult.map(t ->
                 new TransactionResponseDTO(
                         t.getType(),

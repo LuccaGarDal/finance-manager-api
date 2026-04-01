@@ -4,6 +4,7 @@ import com.lucca.finance_manager_api.dto.ApiResponseDTO;
 import com.lucca.finance_manager_api.dto.transaction.PaginatedTransactionResponseDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionRequestDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionResponseDTO;
+import com.lucca.finance_manager_api.entity.Category;
 import com.lucca.finance_manager_api.entity.Type;
 import com.lucca.finance_manager_api.service.TransactionService;
 import jakarta.validation.Valid;
@@ -34,10 +35,11 @@ public class TransactionController {
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false) LocalDate start,
             @RequestParam(required = false) LocalDate end,
-            @RequestParam(required = false) Type type
+            @RequestParam(required = false) Type type,
+            @RequestParam(required = false) Category category
             ) {
         PaginatedTransactionResponseDTO<TransactionResponseDTO> pages =
-                transactionService.listTransactions(accountId, page, limit, start, end, type);
+                transactionService.listTransactions(accountId, page, limit, start, end, type, category);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseDTO.ok(pages));
