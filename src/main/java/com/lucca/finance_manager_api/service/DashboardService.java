@@ -1,5 +1,6 @@
 package com.lucca.finance_manager_api.service;
 
+import com.lucca.finance_manager_api.dto.dashboard.DashboardResponseDTO;
 import com.lucca.finance_manager_api.entity.Account;
 import com.lucca.finance_manager_api.entity.Type;
 import com.lucca.finance_manager_api.entity.User;
@@ -23,6 +24,14 @@ public class DashboardService {
 
     @Autowired
     UserLoggedProvider userLoggedProvider;
+
+    public DashboardResponseDTO getDashboard () {
+        return new DashboardResponseDTO(
+                getTotalBalance(),
+                getMonthlyIncome(),
+                getMonthlyExpense()
+        );
+    }
 
     public BigDecimal getTotalBalance() {
         User user = userLoggedProvider.getUser();

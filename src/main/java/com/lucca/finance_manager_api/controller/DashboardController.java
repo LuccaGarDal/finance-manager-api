@@ -16,8 +16,7 @@ public class DashboardController {
 
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponseDTO> getDashboard () {
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok(dashboardService.getTotalBalance()));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok(dashboardService.getDashboard()));
     }
-
 
 }
