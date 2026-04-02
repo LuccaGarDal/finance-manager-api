@@ -1,15 +1,13 @@
 package com.lucca.finance_manager_api.repository;
 
-import com.lucca.finance_manager_api.entity.Account;
-import com.lucca.finance_manager_api.entity.Category;
-import com.lucca.finance_manager_api.entity.Transaction;
-import com.lucca.finance_manager_api.entity.Type;
+import com.lucca.finance_manager_api.entity.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -31,4 +29,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("end") LocalDate end,
             Pageable pageable
     );
+
+    @Query("""
+    SELECT COALESCE(SUM(t.amount), 0)
+    FROM Transaction t
+    WHERE t.account.user = :user
+    AND t.type = :type
+    AND MONTH(t.transactionDate) = :month
+    AND YEAR(t.transactionDate) = :year
+    """)
+    BigDecimal sumByTypeAndMonth(User user, Type type, int month, int year);
+
 }
