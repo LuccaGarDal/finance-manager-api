@@ -10,6 +10,7 @@ import com.lucca.finance_manager_api.mapper.AccountMapper;
 import com.lucca.finance_manager_api.repository.AccountRepository;
 import com.lucca.finance_manager_api.repository.TransactionRepository;
 import com.lucca.finance_manager_api.security.UserLoggedProvider;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Log4j2
 @Service
 public class AccountService {
 
@@ -39,6 +41,7 @@ public class AccountService {
         User user = userLoggedProvider.getUser();
         account.setUser(user);
         Account save = accountRepository.save(account);
+        log.info("Conta bancária {} criado com sucesso", save.getName());
         return accountMapper.toResponse(save);
     }
 
@@ -64,6 +67,7 @@ public class AccountService {
                         HttpStatus.NOT_FOUND,
                         "Account not found"
                 ));
+        log.info("Conta bancária {} deletada com sucesso", account.getName());
         accountRepository.delete(account);
     }
 
@@ -78,6 +82,7 @@ public class AccountService {
         if (dto.balance() != null) { account.setBalance(dto.balance());}
 
         Account save = accountRepository.save(account);
+        log.info("Conta bancária {} atualizada com sucesso", account.getName());
         return accountMapper.toResponse(save);
     }
 

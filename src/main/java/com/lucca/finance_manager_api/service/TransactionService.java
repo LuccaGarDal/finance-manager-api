@@ -8,6 +8,7 @@ import com.lucca.finance_manager_api.mapper.TransactionMapper;
 import com.lucca.finance_manager_api.repository.AccountRepository;
 import com.lucca.finance_manager_api.repository.TransactionRepository;
 import com.lucca.finance_manager_api.security.UserLoggedProvider;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,9 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
+@Log4j2
 @Service
 public class TransactionService {
 
@@ -63,6 +64,7 @@ public class TransactionService {
 
         accountRepository.save(account);
         Transaction save = transactionRepository.save(entity);
+        log.info("Transação {} criada com sucesso",save.getId());
         return transactionMapper.toResponse(save);
     }
 
@@ -145,6 +147,7 @@ public class TransactionService {
         if (transaction.getType() == Type.INCOME) {
             account.setBalance(account.getBalance().subtract(transaction.getAmount()));
         }
+        log.info("Transação {} deletada com sucesso",transaction.getId());
         transactionRepository.delete(transaction);
     }
 }
