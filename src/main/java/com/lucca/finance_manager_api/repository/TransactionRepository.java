@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+    List<Transaction> findByAccountIdAndTransactionDateBetween (Long accountId, LocalDate start, LocalDate end);
+
     List<Transaction> findByAccountAndTransactionDateLessThanEqualAndAppliedFalse(Account account, LocalDate date);
     @Query("""
     SELECT t FROM Transaction t
