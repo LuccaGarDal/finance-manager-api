@@ -56,4 +56,42 @@ public class ReportService {
         }
         return new ByteArrayInputStream(out.toByteArray());
     }
+
+    public ByteArrayInputStream generateYearlyReport (Long accountId, int year) {
+
+        LocalDate start = LocalDate.of(year, 1,1);
+        LocalDate end = LocalDate.of(year, 12, 31);
+
+        List<Transaction> transactions =
+                transactionRepository.findByAccountIdAndTransactionDateBetween(accountId, start, end);
+
+        Document document = new Document();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            PdfWriter.getInstance(document, out);
+
+            document.open();
+
+            document.add(new Paragraph("Yearly report"));
+            document.add(new Paragraph("Year: " + year));
+            document.add(new Paragraph(" "));
+
+            for (Transaction t : transactions) {
+                document.add(new Paragraph(
+                        t.getTransactionDate() + " - " +
+                                t.getType() + " - " +
+                                t.getCategory() + " - " +
+                                t.getAmount()
+                ));
+            }
+
+            document.close();
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        return new ByteArrayInputStream(out.toByteArray());
+    }
 }

@@ -35,4 +35,19 @@ public class ReportController {
                 .body(pdf.readAllBytes());
     }
 
+    @GetMapping("/yearly")
+    public ResponseEntity<byte[]> generateYearlyReport(
+            @RequestParam long accountId,
+            @RequestParam int year
+    ) {
+        ByteArrayInputStream pdf =
+                reportService.generateYearlyReport(accountId, year);
+
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=report.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf.readAllBytes());
+    }
+
 }
