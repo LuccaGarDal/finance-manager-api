@@ -4,6 +4,10 @@ import com.lucca.finance_manager_api.dto.transaction.PaginatedTransactionRespons
 import com.lucca.finance_manager_api.dto.transaction.TransactionRequestDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionResponseDTO;
 import com.lucca.finance_manager_api.entity.*;
+import com.lucca.finance_manager_api.exceptions.AccountNotFoundException;
+import com.lucca.finance_manager_api.exceptions.InsufficientBalanceException;
+import com.lucca.finance_manager_api.exceptions.TransactionDoesNotBelongToAccountException;
+import com.lucca.finance_manager_api.exceptions.TransactionNotFoundException;
 import com.lucca.finance_manager_api.mapper.TransactionMapper;
 import com.lucca.finance_manager_api.repository.AccountRepository;
 import com.lucca.finance_manager_api.repository.TransactionRepository;
@@ -13,9 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,11 +41,9 @@ public class TransactionService {
     public TransactionResponseDTO createTransaction (TransactionRequestDTO dto, Long id) {
         User user = provider.getUser();
         Transaction entity = transactionMapper.toEntity(dto);
-        Account account = accountRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
-        );
+        Account account = accountRepository.findById(id).orElseThrow(AccountNotFoundException::new);
         if  (!account.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to create");
+            throw new AccountNotFoundException();
         }
         entity.setAccount(account);
 
@@ -51,7 +51,7 @@ public class TransactionService {
             entity.setApplied(true);
             if (entity.getType() == Type.EXPENSE) {
                 if (account.getBalance().compareTo(entity.getAmount()) < 0) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, "You don't have enough money to this transaction");
+                    throw new InsufficientBalanceException();
                 }
                 account.setBalance(account.getBalance().subtract(entity.getAmount()));
             }
@@ -76,11 +76,9 @@ public class TransactionService {
                                                                                      Type type,
                                                                                      Category category) {
         User user = provider.getUser();
-        Account account = accountRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
-        );
+        Account account = accountRepository.findById(id).orElseThrow(AccountNotFoundException::new);
         if  (!(account.getUser().getId().equals(user.getId()))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to list");
+            throw new AccountNotFoundException();
         }
 
         Pageable pageable = PageRequest.of(page, limit);
@@ -111,42 +109,41 @@ public class TransactionService {
     public TransactionResponseDTO getTransaction (Long accountId, Long id) {
         User user = provider.getUser();
 
-        Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
-        );
+        Account account = accountRepository.findById(accountId).orElseThrow(AccountNotFoundException::new);
 
         if  (!(account.getUser().getId().equals(user.getId()))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to access this account");
+            throw new AccountNotFoundException();
         }
 
-        Transaction transaction = transactionRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(TransactionNotFoundException::new);
 
         if(!(transaction.getAccount().getId().equals(account.getId()))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This transaction does not belong to this account");
+            throw new TransactionDoesNotBelongToAccountException();
         }
         return transactionMapper.toResponse(transaction);
     }
 
     public void deleteTransaction (Long accountId, Long id) {
         User user = provider.getUser();
-        Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
-        );
+        Account account = accountRepository.findById(accountId).orElseThrow(AccountNotFoundException::new);
+
         if  (!(account.getUser().getId().equals(user.getId()))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to access this account");
+            throw new AccountNotFoundException();
         }
-        Transaction transaction = transactionRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
+
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(TransactionNotFoundException::new);
         if (!transaction.getAccount().getId().equals(accountId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This transaction does not belong to this account");
+            throw new TransactionDoesNotBelongToAccountException();
         }
+
         if (transaction.getType() == Type.EXPENSE) {
             account.setBalance(account.getBalance().add(transaction.getAmount()));
         }
+
         if (transaction.getType() == Type.INCOME) {
             account.setBalance(account.getBalance().subtract(transaction.getAmount()));
         }
+
         log.info("Transação {} deletada com sucesso",transaction.getId());
         transactionRepository.delete(transaction);
     }

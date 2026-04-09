@@ -6,15 +6,14 @@ import com.lucca.finance_manager_api.entity.Account;
 import com.lucca.finance_manager_api.entity.Transaction;
 import com.lucca.finance_manager_api.entity.Type;
 import com.lucca.finance_manager_api.entity.User;
+import com.lucca.finance_manager_api.exceptions.AccountNotFoundException;
 import com.lucca.finance_manager_api.mapper.AccountMapper;
 import com.lucca.finance_manager_api.repository.AccountRepository;
 import com.lucca.finance_manager_api.repository.TransactionRepository;
 import com.lucca.finance_manager_api.security.UserLoggedProvider;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -49,6 +48,7 @@ public class AccountService {
         List<AccountResponseDTO> listDto = new ArrayList<>();
         User user = userLoggedProvider.getUser();
         List<Account> byUserId = accountRepository.findByUserId(user.getId());
+
         for (Account account : byUserId) {
             applyPendingTransactions(account);
             listDto.add(accountMapper.toResponse(account));
@@ -63,21 +63,16 @@ public class AccountService {
     public void deleteAccount (Long id) {
         User user = userLoggedProvider.getUser();
         Account account = accountRepository.findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Account not found"
-                ));
+                .orElseThrow(AccountNotFoundException::new);
         log.info("Conta bancária {} deletada com sucesso", account.getName());
+
         accountRepository.delete(account);
     }
 
     public AccountResponseDTO updateAccount (Long id, AccountRequestDTO dto) {
         User user = userLoggedProvider.getUser();
         Account account = accountRepository.findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Account not found"
-                ));
+                .orElseThrow(AccountNotFoundException::new);
         if (dto.name() != null) { account.setName(dto.name());}
         if (dto.balance() != null) { account.setBalance(dto.balance());}
 
@@ -114,10 +109,7 @@ public class AccountService {
         User user = userLoggedProvider.getUser();
 
         Account account = accountRepository.findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Account not found"
-                ));
+                .orElseThrow(AccountNotFoundException::new);
 
         applyPendingTransactions(account);
 

@@ -45,6 +45,12 @@ public class TransactionController {
                 .body(ApiResponseDTO.ok(pages));
     }
 
+    @GetMapping("/accounts/{accountId}/transactions/{id}")
+    public ResponseEntity<ApiResponseDTO> getTransaction (@PathVariable Long accountId, @PathVariable Long id) {
+        TransactionResponseDTO transaction = transactionService.getTransaction(accountId, id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDTO.ok(transaction));
+    }
+
 
     @DeleteMapping("/accounts/{accountId}/transactions/{id}")
     public ResponseEntity<ApiResponseDTO> deleteTransaction (@PathVariable Long accountId, @PathVariable Long id) {
