@@ -42,4 +42,14 @@ public class TokenConfig {
             return Optional.empty();
         }
     }
+
+    public Long extractUserId(String token) {
+        Algorithm algorithm = Algorithm.HMAC256(secret);
+
+        DecodedJWT decodedJWT = JWT.require(algorithm)
+                .build()
+                .verify(token);
+
+        return decodedJWT.getClaim("userId").asLong();
+    }
 }
