@@ -1,11 +1,14 @@
 package com.lucca.finance_manager_api.controller;
 
+import com.lucca.finance_manager_api.config.TokenConfig;
 import com.lucca.finance_manager_api.dto.ApiResponseDTO;
 import com.lucca.finance_manager_api.dto.auth.LoginRequestDTO;
 import com.lucca.finance_manager_api.dto.auth.LoginResponseDTO;
 import com.lucca.finance_manager_api.dto.auth.RegisterRequestDTO;
 import com.lucca.finance_manager_api.entity.User;
+import com.lucca.finance_manager_api.repository.RefreshTokenRepository;
 import com.lucca.finance_manager_api.service.AuthService;
+import com.lucca.finance_manager_api.service.RefreshTokenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,12 +18,23 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
     AuthService authService;
+
+    @Autowired
+    RefreshTokenService refreshTokenService;
+
+    @Autowired
+    RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
+    TokenConfig tokenConfig;
 
     @PostMapping("/register")
     private ResponseEntity<ApiResponseDTO> register (@RequestBody @Valid RegisterRequestDTO dto) {
@@ -29,7 +43,39 @@ public class AuthController {
 
     @PostMapping("/login")
     private ResponseEntity<ApiResponseDTO> login (@RequestBody @Valid LoginRequestDTO dto) {
-        String token = authService.login(dto);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok(new LoginResponseDTO(token)));
+        Map<String, String> tokens = authService.login(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok(new LoginResponseDTO(tokens)));
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> payload) {
+        String requestToken = payload.get("refreshToken");
+        return refreshTokenRepository.findByToken(requestToken)
+                .map(token -> {
+                    if (refreshTokenService.isTokenExpired(token)) {
+                        refreshTokenRepository.delete(token);
+                        return ResponseEntity.badRequest().body("Refresh token expired. Please login again.");
+                    }
+                    String newJwt = tokenConfig.generateToken(token.getUser());
+                    return ResponseEntity.ok(Map.of("token", newJwt));
+                })
+                .orElse(ResponseEntity.badRequest().body("Invalid refresh token."));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser(@RequestBody Map<String, String> payload) {
+        String requestToken = payload.get("refreshToken");
+
+        if (requestToken == null || requestToken.isBlank()) {
+            return ResponseEntity.badRequest().body("Refresh token is required.");
+        }
+
+        return refreshTokenRepository.findByToken(requestToken)
+                .map(token -> {
+                    refreshTokenRepository.delete(token);
+                    return ResponseEntity.ok("Logged out successfully.");
+                })
+                .orElse(ResponseEntity.badRequest().body("Invalid refresh token."));
+    }
+
 }

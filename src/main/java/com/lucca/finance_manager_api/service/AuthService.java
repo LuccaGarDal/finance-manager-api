@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Log4j2
 @Service
 public class AuthService {
@@ -33,6 +35,9 @@ public class AuthService {
     @Autowired
     TokenConfig tokenConfig;
 
+    @Autowired
+    RefreshTokenService refreshTokenService;
+
     public RegisterResponseDTO register (RegisterRequestDTO dto) {
         User user = userMapper.toEntity(dto);
         user.setPassword(passwordEncoder.encode(dto.password()));
@@ -41,11 +46,19 @@ public class AuthService {
         return userMapper.toRegisterResponse(save);
     }
 
-    public String login (LoginRequestDTO dto) {
+    public Map<String, String> login (LoginRequestDTO dto) {
         UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(dto.email(), dto.password());
         Authentication auth = authenticationManager.authenticate(userAndPass);
+
         User user = (User) auth.getPrincipal();
         log.info("Usuário {} logado com sucesso", user.getEmail());
-        return tokenConfig.generateToken(user);
+
+        String token = tokenConfig.generateToken(user);
+        String refresh = refreshTokenService.createRefreshToken(user.getId()).getToken();
+
+        return Map.of(
+                "accessToken", token,
+                "refreshToken", refresh
+        );
     }
 }

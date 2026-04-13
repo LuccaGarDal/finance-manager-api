@@ -1,4 +1,6 @@
 package com.lucca.finance_manager_api.dto.auth;
 
-public record LoginResponseDTO (String token){
+import java.util.Map;
+
+public record LoginResponseDTO (Map<String, String> tokens){
 }
