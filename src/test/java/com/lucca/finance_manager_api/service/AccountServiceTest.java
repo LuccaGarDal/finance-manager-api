@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -173,6 +174,64 @@ public class AccountServiceTest {
 
         verify(accountRepository).save(account);
         verify(transactionRepository).saveAll(transactions);
+    }
+
+    @Test
+    void shouldListAccountById () {
+        User user = new User();
+        user.setId(1L);
+
+        Account account = new Account();
+        account.setId(1L);
+        account.setName("Conta Teste");
+        account.setBalance(BigDecimal.valueOf(100));
+        account.setUser(user);
+
+        Transaction income = new Transaction();
+        income.setType(Type.INCOME);
+        income.setAmount(BigDecimal.valueOf(50));
+        income.setApplied(false);
+
+        List<Transaction> transactions = List.of(income);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+        when(accountRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(account));
+        when(transactionRepository.findByAccountAndTransactionDateLessThanEqualAndAppliedFalse(
+                any(), any()
+        )).thenReturn(transactions);
+
+        AccountResponseDTO result = accountService.getAccount(1L);
+
+        assertEquals(BigDecimal.valueOf(150), account.getBalance());
+
+        verify(accountRepository).save(account);
+        verify(transactionRepository).saveAll(transactions);
+    }
+
+    @Test
+    void shouldUpdateAccountWithAtributesNotNull () {
+        User user = new User();
+        user.setId(1L);
+
+        Account account = new Account();
+        account.setId(1L);
+        account.setName("Conta Teste");
+        account.setBalance(BigDecimal.valueOf(100));
+        account.setUser(user);
+
+        AccountRequestDTO accountRequestDTO = new AccountRequestDTO(
+                "Conta",
+                BigDecimal.valueOf(1500)
+        );
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+        when(accountRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(account));
+
+        accountService.updateAccount(1L, accountRequestDTO);
+
+        assertEquals(BigDecimal.valueOf(1500), account.getBalance());
+
+        verify(accountRepository).save(account);
     }
 
 }
