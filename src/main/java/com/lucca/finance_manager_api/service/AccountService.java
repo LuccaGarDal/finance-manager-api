@@ -2,6 +2,7 @@ package com.lucca.finance_manager_api.service;
 
 import com.lucca.finance_manager_api.dto.account.AccountRequestDTO;
 import com.lucca.finance_manager_api.dto.account.AccountResponseDTO;
+import com.lucca.finance_manager_api.dto.account.UpdateAccountDTO;
 import com.lucca.finance_manager_api.entity.Account;
 import com.lucca.finance_manager_api.entity.Transaction;
 import com.lucca.finance_manager_api.entity.Type;
@@ -69,12 +70,11 @@ public class AccountService {
         accountRepository.delete(account);
     }
 
-    public AccountResponseDTO updateAccount (Long id, AccountRequestDTO dto) {
+    public AccountResponseDTO updateAccount (Long id, UpdateAccountDTO dto) {
         User user = userLoggedProvider.getUser();
         Account account = accountRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(AccountNotFoundException::new);
         if (dto.name() != null) { account.setName(dto.name());}
-        if (dto.balance() != null) { account.setBalance(dto.balance());}
 
         Account save = accountRepository.save(account);
         log.info("Conta bancária {} atualizada com sucesso", account.getName());

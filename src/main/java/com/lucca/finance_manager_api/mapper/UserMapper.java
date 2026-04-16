@@ -1,6 +1,5 @@
 package com.lucca.finance_manager_api.mapper;
 
-import com.lucca.finance_manager_api.dto.auth.LoginResponseDTO;
 import com.lucca.finance_manager_api.dto.auth.RegisterRequestDTO;
 import com.lucca.finance_manager_api.dto.auth.RegisterResponseDTO;
 import com.lucca.finance_manager_api.entity.User;

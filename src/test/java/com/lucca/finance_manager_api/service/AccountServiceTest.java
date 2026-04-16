@@ -2,6 +2,7 @@ package com.lucca.finance_manager_api.service;
 
 import com.lucca.finance_manager_api.dto.account.AccountRequestDTO;
 import com.lucca.finance_manager_api.dto.account.AccountResponseDTO;
+import com.lucca.finance_manager_api.dto.account.UpdateAccountDTO;
 import com.lucca.finance_manager_api.entity.Account;
 import com.lucca.finance_manager_api.entity.Transaction;
 import com.lucca.finance_manager_api.entity.Type;
@@ -219,17 +220,16 @@ public class AccountServiceTest {
         account.setBalance(BigDecimal.valueOf(100));
         account.setUser(user);
 
-        AccountRequestDTO accountRequestDTO = new AccountRequestDTO(
-                "Conta",
-                BigDecimal.valueOf(1500)
+        UpdateAccountDTO update = new UpdateAccountDTO(
+                "Conta"
         );
 
         when(userLoggedProvider.getUser()).thenReturn(user);
         when(accountRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(account));
 
-        accountService.updateAccount(1L, accountRequestDTO);
+        accountService.updateAccount(1L, update);
 
-        assertEquals(BigDecimal.valueOf(1500), account.getBalance());
+        assertEquals("Conta", account.getName());
 
         verify(accountRepository).save(account);
     }

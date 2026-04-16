@@ -5,7 +5,6 @@ import com.lucca.finance_manager_api.dto.ApiResponseDTO;
 import com.lucca.finance_manager_api.dto.auth.LoginRequestDTO;
 import com.lucca.finance_manager_api.dto.auth.LoginResponseDTO;
 import com.lucca.finance_manager_api.dto.auth.RegisterRequestDTO;
-import com.lucca.finance_manager_api.entity.User;
 import com.lucca.finance_manager_api.repository.RefreshTokenRepository;
 import com.lucca.finance_manager_api.service.AuthService;
 import com.lucca.finance_manager_api.service.RefreshTokenService;

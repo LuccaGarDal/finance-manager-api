@@ -3,6 +3,7 @@ package com.lucca.finance_manager_api.controller;
 import com.lucca.finance_manager_api.dto.ApiResponseDTO;
 import com.lucca.finance_manager_api.dto.account.AccountRequestDTO;
 import com.lucca.finance_manager_api.dto.account.AccountResponseDTO;
+import com.lucca.finance_manager_api.dto.account.UpdateAccountDTO;
 import com.lucca.finance_manager_api.service.AccountService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ public class AccountController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO> deleteAccount (@PathVariable Long id, @RequestBody @Valid AccountRequestDTO dto) {
+    public ResponseEntity<ApiResponseDTO> patchAccount (@PathVariable Long id, @RequestBody UpdateAccountDTO dto) {
         AccountResponseDTO accountResponseDTO = accountService.updateAccount(id, dto);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.ok(accountResponseDTO));
     }
