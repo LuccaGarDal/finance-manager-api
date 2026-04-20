@@ -1,8 +1,10 @@
 package com.lucca.finance_manager_api.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lucca.finance_manager_api.dto.account.AccountRequestDTO;
 import com.lucca.finance_manager_api.dto.account.AccountResponseDTO;
+import com.lucca.finance_manager_api.dto.account.UpdateAccountDTO;
 import com.lucca.finance_manager_api.entity.Account;
 import com.lucca.finance_manager_api.entity.User;
 import com.lucca.finance_manager_api.infra.ratelimit.RateLimitFilter;
@@ -25,8 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -128,6 +132,72 @@ public class AccountControllerIT {
         List<Account> all = accountRepository.findAll();
 
         assertEquals(2, all.size());
+    }
+
+    @Test
+    void shouldReturnOneAccount () throws Exception {
+        User user = createUser();
+        userRepository.save(user);
+
+        Account account = createAccount();
+        account.setUser(user);
+        accountRepository.save(account);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/{id}", account.getId()))
+                .andExpect(status().isOk());
+
+        Optional<Account> userFound = accountRepository.findByIdAndUserId(account.getId(), user.getId());
+
+        assertTrue(userFound.isPresent());
+    }
+
+    @Test
+    void shouldDeleteAccount() throws Exception {
+        User user = createUser();
+        userRepository.save(user);
+
+        Account account = createAccount();
+        account.setUser(user);
+        accountRepository.save(account);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/accounts/{id}", account.getId()))
+                .andExpect(status().isOk());
+
+        List<Account> all = accountRepository.findAll();
+
+        assertEquals(0, all.size());
+    }
+
+    @Test
+    void shouldUpdateAccountWithAtributes() throws Exception {
+        User user = createUser();
+        userRepository.save(user);
+
+        Account account = createAccount();
+        account.setUser(user);
+        accountRepository.save(account);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        UpdateAccountDTO dto = new UpdateAccountDTO(
+                "Conta atualizada"
+        );
+
+        String payload = objectMapper.writeValueAsString(dto);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/accounts/{id}", account.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
+
+        Optional<Account> userFound = accountRepository.findByIdAndUserId(account.getId(), user.getId());
+
+        assertEquals(userFound.get().getName(), dto.name());
+
     }
 
 }
