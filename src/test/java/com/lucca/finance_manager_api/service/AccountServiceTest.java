@@ -7,6 +7,7 @@ import com.lucca.finance_manager_api.entity.Account;
 import com.lucca.finance_manager_api.entity.Transaction;
 import com.lucca.finance_manager_api.entity.Type;
 import com.lucca.finance_manager_api.entity.User;
+import com.lucca.finance_manager_api.exceptions.AccountNotFoundException;
 import com.lucca.finance_manager_api.mapper.AccountMapper;
 import com.lucca.finance_manager_api.repository.AccountRepository;
 import com.lucca.finance_manager_api.repository.TransactionRepository;
@@ -21,8 +22,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -131,6 +131,18 @@ public class AccountServiceTest {
     }
 
     @Test
+    void shouldReturnEmptyListWhenUserHasNoAccounts () {
+        User user = new User();
+        user.setId(1L);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        List<AccountResponseDTO> allAccounts = accountService.getAllAccounts();
+
+        assertEquals(0, allAccounts.size());
+    }
+
+    @Test
     void shouldApplyPendingTransactionsCorrectly() {
         User user = new User();
         user.setId(1L);
@@ -175,6 +187,17 @@ public class AccountServiceTest {
 
         verify(accountRepository).save(account);
         verify(transactionRepository).saveAll(transactions);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAccountNotFound () {
+        User user = new User();
+        user.setId(1L);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        assertThrows(AccountNotFoundException.class, () ->
+                accountService.getAccount(2L));
     }
 
     @Test
@@ -232,6 +255,44 @@ public class AccountServiceTest {
         assertEquals("Conta", account.getName());
 
         verify(accountRepository).save(account);
+    }
+
+    @Test
+    void shouldNotUpdateWhenNameIsNull () {
+        User user = new User();
+        user.setId(1L);
+
+        Account account = new Account();
+        account.setId(1L);
+        account.setName("Conta Teste");
+        account.setBalance(BigDecimal.valueOf(100));
+        account.setUser(user);
+
+        UpdateAccountDTO update = new UpdateAccountDTO(null
+        );
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+        when(accountRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(account));
+
+        accountService.updateAccount(1L, update);
+
+        assertEquals("Conta Teste", account.getName());
+
+        verify(accountRepository).save(account);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingNonExistingAccount () {
+        User user = new User();
+        user.setId(1L);
+
+        UpdateAccountDTO update = new UpdateAccountDTO(null
+        );
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        assertThrows(AccountNotFoundException.class, () ->
+                accountService.updateAccount(1L, update));
     }
 
 }
