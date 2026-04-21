@@ -22,7 +22,6 @@ public class AccountController {
 
     @PostMapping
     public ResponseEntity<ApiResponseDTO> createAccount (@RequestBody @Valid AccountRequestDTO dto) {
-        System.out.println("CHEGOU NO CONTROLLER");
         AccountResponseDTO data = accountService.createAccount(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDTO.ok(data));
     }

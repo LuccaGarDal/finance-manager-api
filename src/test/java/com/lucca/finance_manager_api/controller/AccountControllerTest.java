@@ -2,6 +2,7 @@ package com.lucca.finance_manager_api.controller;
 
 import com.lucca.finance_manager_api.config.TokenConfig;
 import com.lucca.finance_manager_api.dto.account.AccountResponseDTO;
+import com.lucca.finance_manager_api.exceptions.AccountNotFoundException;
 import com.lucca.finance_manager_api.infra.ratelimit.RateLimitService;
 import com.lucca.finance_manager_api.repository.UserRepository;
 import com.lucca.finance_manager_api.service.AccountService;
@@ -61,6 +62,32 @@ class AccountControllerTest {
     }
 
     @Test
+    void shouldReturnBadRequestWhenPayloadIsInvalid() throws Exception {
+
+        String payload = """
+                {
+                  "name": "Conta"
+                }
+                """;
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/accounts")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnNotfoundWhenNoOneAccountIsFound() throws Exception {
+
+        when(accountService.getAllAccounts()).thenThrow(new AccountNotFoundException());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts")
+                        .with(csrf()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     @WithMockUser
     void shouldListAllAccounts() throws Exception {
         AccountResponseDTO dto = new AccountResponseDTO(1L, "Conta", BigDecimal.valueOf(500));
@@ -92,6 +119,16 @@ class AccountControllerTest {
     }
 
     @Test
+    void shouldReturnNotFoundWhenAccountIsNotFoundById() throws Exception {
+
+        when(accountService.getAccount(1L)).thenThrow(new AccountNotFoundException());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/{id}", 1L)
+                        .with(csrf()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     @WithMockUser
     void shouldDeleteAccountById() throws Exception {
 
@@ -102,6 +139,16 @@ class AccountControllerTest {
                 .andExpect(status().isOk());
 
         verify(accountService).deleteAccount(1L);
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenAccountDeletedDoesNotExists() throws Exception {
+
+        doThrow(new AccountNotFoundException()).when(accountService).deleteAccount(1L);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/accounts/{id}", 1L)
+                        .with(csrf()))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -123,5 +170,30 @@ class AccountControllerTest {
                         .content(payload))
                 .andExpect(jsonPath("$.data.name").value("Conta Atualizada"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenUpdateAccountDoesNotExists () throws Exception {
+
+        doThrow(new AccountNotFoundException()).when(accountService).updateAccount(eq(1L), any());
+
+        String payload = """
+                {
+                   "name": "Conta Atualizada"
+                }
+                """;
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/accounts/{id}", 1L)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnMethodNotAllowed() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.put("/accounts/{id}", 1L)
+                        .with(csrf()))
+                .andExpect(status().isMethodNotAllowed());
     }
 }
