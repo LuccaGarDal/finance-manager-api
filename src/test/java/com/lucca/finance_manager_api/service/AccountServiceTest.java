@@ -295,4 +295,34 @@ public class AccountServiceTest {
                 accountService.updateAccount(1L, update));
     }
 
+    @Test
+    void shouldDeleteAccountSuccessfully () {
+        User user = new User();
+        user.setId(1L);
+
+        Account account = new Account();
+        account.setId(1L);
+        account.setName("Conta Teste");
+        account.setBalance(BigDecimal.valueOf(100));
+        account.setUser(user);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+        when(accountRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(account));
+
+        accountService.deleteAccount(1L);
+
+        verify(accountRepository).delete(account);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingNonExistingAccount () {
+        User user = new User();
+        user.setId(1L);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        assertThrows(AccountNotFoundException.class, () ->
+                accountService.deleteAccount(1L));
+    }
+
 }
