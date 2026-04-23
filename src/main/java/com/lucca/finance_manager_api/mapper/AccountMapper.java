@@ -10,7 +10,6 @@ public class AccountMapper {
 
     public Account toEntity (AccountRequestDTO dto) {
         Account account = new Account();
-        account.setBalance(dto.balance());
         account.setName(dto.name());
         return account;
     }

@@ -7,9 +7,6 @@ import java.math.BigDecimal;
 
 public record AccountRequestDTO(
         @NotEmpty(message = "Name is required")
-        String name,
-
-        @NotNull(message = "Balance is required")
-        BigDecimal balance
+        String name
 ) {
 }

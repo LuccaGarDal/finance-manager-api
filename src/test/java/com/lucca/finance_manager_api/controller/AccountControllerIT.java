@@ -83,8 +83,7 @@ public class AccountControllerIT {
     @Test
     void shouldCreateANewAccount () throws Exception {
         AccountRequestDTO accountRequestDTO = new AccountRequestDTO(
-                "Conta",
-                BigDecimal.valueOf(50)
+                "Conta"
         );
 
         User user = new User();

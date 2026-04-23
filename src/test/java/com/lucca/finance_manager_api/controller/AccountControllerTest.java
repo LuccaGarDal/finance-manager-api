@@ -49,8 +49,7 @@ class AccountControllerTest {
 
         String payload = """
                 {
-                  "name": "Conta",
-                  "balance": 500
+                  "name": "Conta"
                 }
                 """;
 
@@ -67,6 +66,7 @@ class AccountControllerTest {
         String payload = """
                 {
                   "name": "Conta"
+                  "balance": "15"
                 }
                 """;
 

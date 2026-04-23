@@ -16,6 +16,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class AccountService {
 
     public AccountResponseDTO createAccount (AccountRequestDTO dto) {
         Account account = accountMapper.toEntity(dto);
+        account.setBalance(BigDecimal.valueOf(0));
         User user = userLoggedProvider.getUser();
         account.setUser(user);
         Account save = accountRepository.save(account);

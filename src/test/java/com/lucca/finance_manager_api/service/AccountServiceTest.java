@@ -49,8 +49,7 @@ public class AccountServiceTest {
     @Test
     void shouldCreateANewAccount () {
         AccountRequestDTO dto = new AccountRequestDTO(
-                "Conta teste",
-                BigDecimal.valueOf(5000)
+                "Conta teste"
         );
 
         Account account = new Account();
