@@ -6,15 +6,11 @@ import com.lucca.finance_manager_api.exceptions.AccountNotFoundException;
 import com.lucca.finance_manager_api.exceptions.InsufficientBalanceException;
 import com.lucca.finance_manager_api.exceptions.TransactionDoesNotBelongToAccountException;
 import com.lucca.finance_manager_api.exceptions.TransactionNotFoundException;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
