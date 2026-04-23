@@ -1,4 +1,4 @@
-package com.lucca.finance_manager_api.controller;
+package com.lucca.finance_manager_api.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lucca.finance_manager_api.dto.transaction.TransactionRequestDTO;
