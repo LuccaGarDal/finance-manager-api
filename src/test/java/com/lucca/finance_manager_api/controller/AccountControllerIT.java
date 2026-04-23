@@ -1,9 +1,7 @@
 package com.lucca.finance_manager_api.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lucca.finance_manager_api.dto.account.AccountRequestDTO;
-import com.lucca.finance_manager_api.dto.account.AccountResponseDTO;
 import com.lucca.finance_manager_api.dto.account.UpdateAccountDTO;
 import com.lucca.finance_manager_api.entity.Account;
 import com.lucca.finance_manager_api.entity.User;
@@ -134,6 +132,21 @@ public class AccountControllerIT {
     }
 
     @Test
+    void shouldReturnEmptyArrayWhenThereIsNoAccounts() throws Exception {
+        User user = createUser();
+        userRepository.save(user);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts"))
+                .andExpect(status().isOk());
+
+        List<Account> all = accountRepository.findAll();
+
+        assertEquals(0, all.size());
+    }
+
+    @Test
     void shouldReturnOneAccount () throws Exception {
         User user = createUser();
         userRepository.save(user);
@@ -153,6 +166,22 @@ public class AccountControllerIT {
     }
 
     @Test
+    void shouldThrowNotFoundWhenAccountIsNotFound () throws Exception {
+        User user = createUser();
+        userRepository.save(user);
+
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/{id}", 1L))
+                .andExpect(status().isNotFound());
+
+        Optional<Account> userFound = accountRepository.findByIdAndUserId(1L, user.getId());
+
+        assertTrue(userFound.isEmpty());
+    }
+
+    @Test
     void shouldDeleteAccount() throws Exception {
         User user = createUser();
         userRepository.save(user);
@@ -169,6 +198,21 @@ public class AccountControllerIT {
         List<Account> all = accountRepository.findAll();
 
         assertEquals(0, all.size());
+    }
+
+    @Test
+    void shouldThrowNotFoundWhenAccountDeletedIsNotFound () throws Exception {
+        User user = createUser();
+        userRepository.save(user);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/accounts/{id}", 1L))
+                .andExpect(status().isNotFound());
+
+        Optional<Account> userFound = accountRepository.findByIdAndUserId(1L, user.getId());
+
+        assertTrue(userFound.isEmpty());
     }
 
     @Test
@@ -196,6 +240,35 @@ public class AccountControllerIT {
         Optional<Account> userFound = accountRepository.findByIdAndUserId(account.getId(), user.getId());
 
         assertEquals(userFound.get().getName(), dto.name());
+
+    }
+
+    @Test
+    void shouldKeepAtributesIfDtoAtributesAreNull() throws Exception {
+        User user = createUser();
+        userRepository.save(user);
+
+        Account account = createAccount();
+        account.setName("Conta");
+        account.setUser(user);
+        accountRepository.save(account);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        UpdateAccountDTO dto = new UpdateAccountDTO(
+                ""
+        );
+
+        String payload = objectMapper.writeValueAsString(dto);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/accounts/{id}", account.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
+
+        Optional<Account> userFound = accountRepository.findByIdAndUserId(account.getId(), user.getId());
+
+        assertEquals(userFound.get().getName(), account.getName());
 
     }
 
