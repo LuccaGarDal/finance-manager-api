@@ -1,6 +1,5 @@
 package com.lucca.finance_manager_api.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lucca.finance_manager_api.dto.transaction.TransactionRequestDTO;
 import com.lucca.finance_manager_api.dto.transaction.TransactionResponseDTO;
@@ -26,10 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -76,14 +74,14 @@ public class TransactionControllerIT {
     private Account createAccount (User user) {
         Account account = new Account();
         account.setName("Conta Teste");
-        account.setBalance(BigDecimal.valueOf(100));
+        account.setBalance(BigDecimal.valueOf(1000));
         account.setUser(user);
         return account;
     }
 
     private TransactionRequestDTO createRequestDTO() {
         return new TransactionRequestDTO(
-                Type.INCOME,
+                Type.EXPENSE,
                 BigDecimal.valueOf(500),
                 LocalDate.now(),
                 Category.FOOD
@@ -103,7 +101,6 @@ public class TransactionControllerIT {
 
     private Transaction createTransaction (TransactionRequestDTO dto, Account account) {
         Transaction transaction = new Transaction();
-        transaction.setId(1L);
         transaction.setTransactionDate(dto.transactionDate());
         transaction.setCategory(dto.category());
         transaction.setApplied(true);
@@ -143,4 +140,156 @@ public class TransactionControllerIT {
         List<Transaction> all = transactionRepository.findAll();
         assertNotNull(all);
     }
+
+    @Test
+    void shouldReturnBadRequestWhenBalanceIsInsufficient () throws Exception {
+        User user = createUser();
+        TransactionRequestDTO requestDTO = createRequestDTO();
+        User saved = userRepository.save(user);
+
+        Account account = createAccount(saved);
+        account.setBalance(BigDecimal.valueOf(0));
+        Account save = accountRepository.save(account);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        String payload = objectMapper.writeValueAsString(requestDTO);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/accounts/{accountId}/transactions", save.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnArrayWithAllTransactions () throws Exception {
+        User user = createUser();
+        User saved = userRepository.save(user);
+
+        Account account = createAccount(saved);
+        Account save = accountRepository.save(account);
+
+        TransactionRequestDTO dto = createRequestDTO();
+
+        Transaction transaction1 = createTransaction(dto, account);
+        Transaction transaction2 = createTransaction(dto, account);
+        Transaction transaction3 = createTransaction(dto, account);
+        transactionRepository.save(transaction1);
+        transactionRepository.save(transaction2);
+        transactionRepository.save(transaction3);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/{accountId}/transactions", save.getId()))
+                .andExpect(status().isOk());
+
+        List<Transaction> all = transactionRepository.findAll();
+
+        assertEquals(3, all.size());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenAccountDoesNotExists() throws Exception {
+        User user = createUser();
+        User saved = userRepository.save(user);
+
+        Account account = createAccount(saved);
+        accountRepository.save(account);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/{accountId}/transactions", 21L))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnTransactionById () throws Exception {
+        User user = createUser();
+        User saved = userRepository.save(user);
+
+        Account account = createAccount(saved);
+        Account save = accountRepository.save(account);
+
+        TransactionRequestDTO dto = createRequestDTO();
+
+        Transaction transaction1 = createTransaction(dto, account);
+        Transaction save1 = transactionRepository.save(transaction1);
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/{accountId}/transactions/{id}", save.getId(), save1.getId()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenAccountIsNotFound() throws Exception {
+        User user = createUser();
+        User saved = userRepository.save(user);
+
+        Account account = createAccount(saved);
+        accountRepository.save(account);
+
+        TransactionRequestDTO dto = createRequestDTO();
+
+        Transaction transaction1 = createTransaction(dto, account);
+        Transaction save1 = transactionRepository.save(transaction1);
+        when(userLoggedProvider.getUser()).thenReturn(user);
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/{accountId}/transactions/{id}",4L, save1.getId()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenTransactionIsNotFound() throws Exception {
+        User user = createUser();
+        User saved = userRepository.save(user);
+
+        Account account = createAccount(saved);
+        Account save = accountRepository.save(account);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+        mockMvc.perform(MockMvcRequestBuilders.get("/accounts/{accountId}/transactions/{id}", save.getId(), 1L))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldDeleteAccount() throws Exception {
+        User user = createUser();
+        User saved = userRepository.save(user);
+
+        Account account = createAccount(saved);
+        Account save = accountRepository.save(account);
+
+        TransactionRequestDTO dto = createRequestDTO();
+
+        Transaction transaction1 = createTransaction(dto, account);
+        Transaction save1 = transactionRepository.save(transaction1);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/accounts/{accountId}/transactions/{id}", save.getId(), save1.getId()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldThrowNotFoundWhenAccountIsNotFound() throws Exception {
+        User user = createUser();
+        User saved = userRepository.save(user);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/accounts/{accountId}/transactions/{id}", 1L, 1L ))
+                .andExpect(status().isNotFound());
+    }
+    @Test
+    void shouldThrowNotFoundWhenTransactionIsNotFound() throws Exception {
+        User user = createUser();
+        User saved = userRepository.save(user);
+
+        Account account = createAccount(saved);
+        Account save = accountRepository.save(account);
+
+        when(userLoggedProvider.getUser()).thenReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/accounts/{accountId}/transactions/{id}", save.getId(), 1L))
+                .andExpect(status().isNotFound());
+    }
+
 }
