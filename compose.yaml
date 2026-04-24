@@ -5,6 +5,6 @@ services:
     environment:
       POSTGRES_DB: finance_manager
       POSTGRES_USER: finance_db
-      POSTGRES_PASSWORD: finance2026
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5433:5432"

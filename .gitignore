@@ -1,5 +1,6 @@
 HELP.md
 target/
+build/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -25,12 +26,22 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
 ### VS Code ###
 .vscode/
 
-### .env ###
+### ENV (SEGREDOS) ###
 .env
+.env.*
+!.env.example
+
+### SPRING SECRETS ###
+application-secret.properties
+application-secret.yml
+
+### LOGS ###
+*.log
+logs/
+
+### DOCKER (opcional) ###
+docker-compose.override.yml
